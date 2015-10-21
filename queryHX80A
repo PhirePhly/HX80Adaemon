@@ -1,20 +1,39 @@
 #!/usr/bin/python
+#
+# queryHX80A - Solar Junction, 2015
+#
+# A short-lived script which connects to a serial server, pulls down one line
+# of telemetry and logs it to a database
+
+serialsvr = ("sj-hx86pa01.solarjunction.local", 2000)
 
 from socket import *
 
+
+# Break apart an HX80A string into a dict of key,values
+def parseHX86PA(inputdata):
+	lines = inputdata.splitlines()
+	for line in lines:
+		if line.startswith('%RH'): #This is HX86PA specific
+			telemetry = dict(values.split('=') for values in line.split(","))
+			return [telemetry]
+
+
+# Somehow store the captured telemetry
+# TODO: Do something other than print to screen
+def logTelemetry(telemetry):
+	print "Logging telemetry:"
+	print telemetry
+	
+
+#############################################
+# MAIN
+#############################################
+
 s = socket(AF_INET,SOCK_STREAM)
-s.connect(("sj-hx86pa01.solarjunction.local",2000))
+s.connect(serialsvr)
 data = s.recv(100)
-print(data)
-datas = data.splitlines()
-for line in datas:
-    print "Processing line"
-    if line.startswith('%RH'):
-        print line
-        telemetry = dict(values.split('=') for values in line.split(","))
-        print telemetry
-        print telemetry['%RH']
-        print telemetry['AT\xf8C']
-        print telemetry['psia']
 s.close()
 
+telemetry = parseHX86PA(data)
+logTelemetry(telemetry)
