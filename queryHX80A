@@ -1,0 +1,20 @@
+#!/usr/bin/python
+
+from socket import *
+
+s = socket(AF_INET,SOCK_STREAM)
+s.connect(("sj-hx86pa01.solarjunction.local",2000))
+data = s.recv(100)
+print(data)
+datas = data.splitlines()
+for line in datas:
+    print "Processing line"
+    if line.startswith('%RH'):
+        print line
+        telemetry = dict(values.split('=') for values in line.split(","))
+        print telemetry
+        print telemetry['%RH']
+        print telemetry['AT\xf8C']
+        print telemetry['psia']
+s.close()
+
