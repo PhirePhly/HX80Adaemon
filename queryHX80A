@@ -5,18 +5,47 @@
 # A short-lived script which connects to a serial server, pulls down one line
 # of telemetry and logs it to a database
 
-serialsvr = ("sj-hx86pa01.solarjunction.local", 2000)
-
+import sys
+import ConfigParser
+import io
 from socket import *
+
+config = ConfigParser.RawConfigParser()
+
+########
+# MAIN #
+########
+def main():
+	# Parse the config file
+	with open("hx80a.conf") as configfile:
+		configcontents = configfile.read()
+	config.readfp(io.BytesIO(configcontents))
+
+
+	data = recvHX80AString()
+	telemetry = parseHX86PA(data)
+	logTelemetry(telemetry)
+
+
+# Connect to remote RS-232 to TCP/IP gateway
+def recvHX80AString():
+	s = socket(AF_INET,SOCK_STREAM)
+	s.connect((config.get('sensor','hostname'),config.getint('sensor','port')))
+	data = s.recv(100)
+	s.close()
+	return data
 
 
 # Break apart an HX80A string into a dict of key,values
+# This is currently specific to HX86PA sensors
 def parseHX86PA(inputdata):
 	lines = inputdata.splitlines()
 	for line in lines:
 		if line.startswith('%RH'): #This is HX86PA specific
 			telemetry = dict(values.split('=') for values in line.split(","))
 			return [telemetry]
+	# No usable lines received?
+	sys.exit(1)
 
 
 # Somehow store the captured telemetry
@@ -26,14 +55,5 @@ def logTelemetry(telemetry):
 	print telemetry
 	
 
-#############################################
-# MAIN
-#############################################
-
-s = socket(AF_INET,SOCK_STREAM)
-s.connect(serialsvr)
-data = s.recv(100)
-s.close()
-
-telemetry = parseHX86PA(data)
-logTelemetry(telemetry)
+if __name__ == "__main__":
+	main()
