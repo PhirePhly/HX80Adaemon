@@ -7,7 +7,7 @@ database=telemetry
 [sensor]
 hostname=192.0.2.99
 port=2000
-relhumidityid=1
+humidityid=1
 temperatureid=2
 pressureid=3
 

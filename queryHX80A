@@ -45,7 +45,7 @@ def recvHX80AString():
 def parseHX86PA(inputdata):
 	lines = inputdata.splitlines()
 	for line in lines:
-		if line.startswith('%RH'): #This is HX86PA specific
+		if line.startswith('DP'): #This is configuration specific
 			telemetry = dict(values.split('=') for values in line.split(","))
 			return (telemetry)
 	# No usable lines received?
@@ -56,7 +56,7 @@ def parseHX86PA(inputdata):
 # TODO: Do something other than print to screen
 def logTelemetry(telemetry):
 	# Error check for 0,0,0 results from sensor
-	if telemetry['%RH'] == '0':
+	if telemetry['psia'] == '0':
 		return
 
 	sqlcon = mysql.connector.connect(
@@ -65,7 +65,7 @@ def logTelemetry(telemetry):
 			host=config.get('mysql','host'),
 			database=config.get('mysql','database'))
 	cursor = sqlcon.cursor()
-	cursor.execute(insert_meas, (config.get('sensor','relhumidityid'),telemetry['%RH']))
+	cursor.execute(insert_meas, (config.get('sensor','humidityid'),telemetry['DP\xf8C']))
 	cursor.execute(insert_meas, (config.get('sensor','temperatureid'),telemetry['AT\xf8C']))
 	cursor.execute(insert_meas, (config.get('sensor','pressureid'),telemetry['psia']))
 
